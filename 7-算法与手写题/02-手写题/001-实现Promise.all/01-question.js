@@ -37,7 +37,30 @@
 
 // TODO: 在这里完成你的实现
 export function myPromiseAll(iterable) {
-  throw new Error("TODO: 请实现 myPromiseAll 函数");
+  return new Promise((resolve, reject) => {
+    const res = [];
+
+    let count = 0;
+
+    if (!iterable.length) {
+      return new Promise.resolve(res);
+    }
+
+    for (let index = 0; index < iterable.length; index++) {
+      const element = iterable[index];
+
+      Promise.resolve(element)
+        .then((data) => {
+          res[index] = data;
+
+          count++;
+          if (count >= iterable.length) {
+            resolve(res);
+          }
+        })
+        .catch(reject);
+    }
+  });
 }
 
 async function runExample() {
