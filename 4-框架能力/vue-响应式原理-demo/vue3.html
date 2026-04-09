@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue3 响应式 Demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="page demo-page">
+      <a class="back-link" href="./index.html">返回目录</a>
+      <p class="eyebrow">Vue3 Reactivity</p>
+      <h1>Proxy 最小 Demo</h1>
+      <p class="lead">
+        只看一条主链路：读取 <code>count</code>，收集依赖；修改 <code>count</code>，触发更新；effect 重新执行。
+      </p>
+
+      <section class="demo-card">
+        <div class="state-row">
+          <span>当前 count</span>
+          <strong data-count>0</strong>
+        </div>
+        <div class="actions">
+          <button data-action="read">主动读取 count</button>
+          <button data-action="increment">count + 1</button>
+          <button data-action="reset" class="ghost">重置</button>
+        </div>
+        <ol class="steps">
+          <li>1. 页面初始化时，会先执行一次 effect。</li>
+          <li>2. effect 里读取 <code>count</code>，于是完成依赖收集。</li>
+          <li>3. 点击 <code>count + 1</code>，Proxy 的 set 触发，effect 再执行一次。</li>
+        </ol>
+      </section>
+
+      <section class="log-card">
+        <h2>运行日志</h2>
+        <ul class="log" data-log></ul>
+      </section>
+    </main>
+
+    <script type="module">
+      import { reactiveVue3, watchEffectVue3 } from './vue3-reactivity-demo.js';
+
+      const countEl = document.querySelector('[data-count]');
+      const logEl = document.querySelector('[data-log]');
+
+      let state;
+
+      function appendLog(message) {
+        const item = document.createElement('li');
+        item.textContent = message;
+        logEl.prepend(item);
+      }
+
+      function init() {
+        logEl.innerHTML = '';
+
+        state = reactiveVue3(
+          { count: 0 },
+          {
+            onTrack(message) {
+              appendLog(`track: ${message}`);
+            },
+            onTrigger(message) {
+              appendLog(`trigger: ${message}`);
+            },
+          },
+        );
+
+        watchEffectVue3(() => {
+          countEl.textContent = String(state.count);
+          appendLog(`effect: 渲染 count = ${state.count}`);
+        });
+      }
+
+      document.querySelector('[data-action="read"]').addEventListener('click', () => {
+        appendLog(`manual: 手动读取 count，结果是 ${state.count}`);
+      });
+
+      document.querySelector('[data-action="increment"]').addEventListener('click', () => {
+        state.count += 1;
+      });
+
+      document.querySelector('[data-action="reset"]').addEventListener('click', init);
+
+      init();
+    </script>
+  </body>
+</html>

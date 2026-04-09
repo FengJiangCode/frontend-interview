@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue 响应式原理 Demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="page home">
+      <p class="eyebrow">Vue Reactivity Demo</p>
+      <h1>选择一个最小响应式 Demo</h1>
+      <p class="lead">
+        这里只保留响应式核心链路：读取数据、收集依赖、修改数据、触发更新、effect 重新执行。
+      </p>
+
+      <section class="links">
+        <a class="card" href="./vue2.html">
+          <strong>Vue2 Demo</strong>
+          <span>基于 Object.defineProperty</span>
+        </a>
+        <a class="card" href="./vue3.html">
+          <strong>Vue3 Demo</strong>
+          <span>基于 Proxy</span>
+        </a>
+      </section>
+    </main>
+  </body>
+</html>
