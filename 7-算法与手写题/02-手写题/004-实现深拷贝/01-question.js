@@ -33,9 +33,29 @@
  */
 
 // TODO: 在这里完成你的实现
-export function deepClone(value) {
-  void value;
-  throw new Error("TODO: 请在 01-question.js 中完成实现");
+export function deepClone(value, cache = new WeakMap()) {
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+
+  if (cache.has(value)) {
+    return cache.get(value);
+  }
+
+  if (Array.isArray(value)) {
+    const arr = [];
+    cache.set(value, arr);
+    value.forEach((e, index) => (arr[index] = deepClone(e, cache)));
+
+    return arr;
+  }
+  const obj = {};
+  cache.set(value, obj);
+  Object.entries(value).forEach(([k, v]) => {
+    obj[k] = deepClone(v, cache);
+  });
+
+  return obj;
 }
 
 function runExample() {
