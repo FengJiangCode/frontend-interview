@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>01-Bug排查助手协作Demo</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">AI Demo / Realistic Mock Flow</p>
+          <h1>01-Bug排查助手协作Demo</h1>
+          <p class="summary">
+            这不是“概念卡片”式演示，而是一条更贴近真实使用场景的调用链：
+            用户提需求，Agent 调度，LLM 做决策与总结，Skill 执行分析，MCP 提供外部资源。
+          </p>
+        </div>
+        <section class="hero-note">
+          <h2>本 Demo 的真实感边界</h2>
+          <ul>
+            <li>LLM 调用是 mock，但保留了 prompt、tool choice、summary 这些真实职责。</li>
+            <li>MCP 调用是 mock，但保留了资源列表、读取资源、搜索资源这些真实接口感。</li>
+            <li>Skill 是一个稳定任务能力，不直接替代 Agent 或 LLM。</li>
+          </ul>
+        </section>
+      </header>
+
+      <section class="toolbar card">
+        <button id="start-btn" type="button">开始排查</button>
+        <button id="step-btn" type="button">单步执行</button>
+        <button id="reset-btn" type="button">重置</button>
+      </section>
+
+      <section class="grid architecture">
+        <article class="card actor-card" id="agent-card">
+          <h2>Agent</h2>
+          <p>接收目标、决定下一步、触发 LLM 与 Skill、整理最终结果。</p>
+        </article>
+        <article class="card actor-card" id="llm-card">
+          <h2>LLM</h2>
+          <p>负责判断该看什么、如何总结证据、如何组织输出。</p>
+        </article>
+        <article class="card actor-card" id="skill-card">
+          <h2>Skill</h2>
+          <p>封装 Bug 分析套路，保证流程和输出结构稳定。</p>
+        </article>
+        <article class="card actor-card" id="mcp-card">
+          <h2>MCP</h2>
+          <p>暴露日志、源码、接口文档等资源给上层能力读取。</p>
+        </article>
+      </section>
+
+      <section class="grid main-grid">
+        <article class="card">
+          <h2>用户任务</h2>
+          <p id="task-text"></p>
+          <h3>当前状态</h3>
+          <p id="status-text" class="status-text"></p>
+        </article>
+
+        <article class="card">
+          <h2>执行时间线</h2>
+          <ol id="timeline-list" class="timeline-list"></ol>
+        </article>
+      </section>
+
+      <section class="grid data-grid">
+        <article class="card">
+          <h2>Mock LLM 调用</h2>
+          <p class="panel-tip">这里展示当前步骤里发给 LLM 的 prompt 和返回结果。</p>
+          <pre id="llm-call" class="code-block"></pre>
+        </article>
+
+        <article class="card">
+          <h2>Mock Skill 输出</h2>
+          <p class="panel-tip">Skill 不是大模型本身，而是对 Bug 分析方法的稳定封装。</p>
+          <pre id="skill-output" class="code-block"></pre>
+        </article>
+      </section>
+
+      <section class="grid data-grid">
+        <article class="card">
+          <h2>Mock MCP 调用</h2>
+          <p class="panel-tip">这里显示资源列表、资源读取和关键字搜索等外部能力调用。</p>
+          <pre id="mcp-call" class="code-block"></pre>
+        </article>
+
+        <article class="card">
+          <h2>当前资源内容</h2>
+          <div class="resource-tabs" id="resource-tabs"></div>
+          <pre id="resource-content" class="code-block"></pre>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>最终结论</h2>
+        <div id="final-report" class="report-grid">
+          <div>
+            <h3>问题定位</h3>
+            <p>-</p>
+          </div>
+          <div>
+            <h3>可能原因</h3>
+            <p>-</p>
+          </div>
+          <div>
+            <h3>证据来源</h3>
+            <p>-</p>
+          </div>
+          <div>
+            <h3>修复建议</h3>
+            <p>-</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
