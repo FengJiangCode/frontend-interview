@@ -13,21 +13,26 @@
           <p class="eyebrow">AI Demo / Realistic Mock Flow</p>
           <h1>01-Bug排查助手协作Demo</h1>
           <p class="summary">
-            这不是“概念卡片”式演示，而是一条更贴近真实使用场景的调用链：
-            用户提需求，Agent 调度，LLM 做决策与总结，Skill 执行分析，MCP 提供外部资源。
+            这版 demo 更贴近真实排障台：支持多个 bug case，能看到 Agent
+            的决策、LLM 的 mock 调用、Skill 的结构化输出，以及 MCP 的 tool
+            call 参数。
           </p>
         </div>
         <section class="hero-note">
-          <h2>本 Demo 的真实感边界</h2>
+          <h2>怎么理解这版</h2>
           <ul>
-            <li>LLM 调用是 mock，但保留了 prompt、tool choice、summary 这些真实职责。</li>
-            <li>MCP 调用是 mock，但保留了资源列表、读取资源、搜索资源这些真实接口感。</li>
-            <li>Skill 是一个稳定任务能力，不直接替代 Agent 或 LLM。</li>
+            <li>LLM 是 mock，但会展示更像真实系统的 prompt 和响应。</li>
+            <li>MCP 是 mock，但会展示 list/read/search 这类工具调用入参。</li>
+            <li>你可以切换不同 bug case，对比同一套协作链路如何处理不同问题。</li>
           </ul>
         </section>
       </header>
 
       <section class="toolbar card">
+        <label class="case-picker">
+          <span>选择 Bug Case</span>
+          <select id="case-select"></select>
+        </label>
         <button id="start-btn" type="button">开始排查</button>
         <button id="step-btn" type="button">单步执行</button>
         <button id="reset-btn" type="button">重置</button>
@@ -36,19 +41,19 @@
       <section class="grid architecture">
         <article class="card actor-card" id="agent-card">
           <h2>Agent</h2>
-          <p>接收目标、决定下一步、触发 LLM 与 Skill、整理最终结果。</p>
+          <p>接收目标、决定下一步、调度 LLM 与 Skill，并输出最终结论。</p>
         </article>
         <article class="card actor-card" id="llm-card">
           <h2>LLM</h2>
-          <p>负责判断该看什么、如何总结证据、如何组织输出。</p>
+          <p>负责规划下一步、选择分析路径、基于证据总结结论。</p>
         </article>
         <article class="card actor-card" id="skill-card">
           <h2>Skill</h2>
-          <p>封装 Bug 分析套路，保证流程和输出结构稳定。</p>
+          <p>封装稳定任务方法，例如日志分析、接口契约核对、缓存问题排查。</p>
         </article>
         <article class="card actor-card" id="mcp-card">
           <h2>MCP</h2>
-          <p>暴露日志、源码、接口文档等资源给上层能力读取。</p>
+          <p>向上层暴露资源与工具，例如读取日志、读代码、搜索关键字。</p>
         </article>
       </section>
 
@@ -61,21 +66,33 @@
         </article>
 
         <article class="card">
+          <h2>Agent 决策面板</h2>
+          <pre id="agent-panel" class="code-block compact-block"></pre>
+        </article>
+      </section>
+
+      <section class="grid main-grid">
+        <article class="card">
           <h2>执行时间线</h2>
           <ol id="timeline-list" class="timeline-list"></ol>
+        </article>
+
+        <article class="card">
+          <h2>工具调用轨迹</h2>
+          <ol id="tool-trace" class="timeline-list"></ol>
         </article>
       </section>
 
       <section class="grid data-grid">
         <article class="card">
           <h2>Mock LLM 调用</h2>
-          <p class="panel-tip">这里展示当前步骤里发给 LLM 的 prompt 和返回结果。</p>
+          <p class="panel-tip">展示发给 LLM 的 prompt、上下文和返回结果。</p>
           <pre id="llm-call" class="code-block"></pre>
         </article>
 
         <article class="card">
           <h2>Mock Skill 输出</h2>
-          <p class="panel-tip">Skill 不是大模型本身，而是对 Bug 分析方法的稳定封装。</p>
+          <p class="panel-tip">展示 Skill 产出的结构化分析结果和触达资源。</p>
           <pre id="skill-output" class="code-block"></pre>
         </article>
       </section>
@@ -83,7 +100,7 @@
       <section class="grid data-grid">
         <article class="card">
           <h2>Mock MCP 调用</h2>
-          <p class="panel-tip">这里显示资源列表、资源读取和关键字搜索等外部能力调用。</p>
+          <p class="panel-tip">展示资源列表、读取资源和搜索关键字的调用参数。</p>
           <pre id="mcp-call" class="code-block"></pre>
         </article>
 

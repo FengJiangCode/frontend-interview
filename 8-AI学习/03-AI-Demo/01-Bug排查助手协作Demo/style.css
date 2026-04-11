@@ -1,6 +1,6 @@
 :root {
   --bg: #f2efe7;
-  --panel: rgba(255, 252, 245, 0.88);
+  --panel: rgba(255, 252, 245, 0.9);
   --text: #1f2937;
   --muted: #5b6472;
   --line: #d7cfbe;
@@ -93,8 +93,29 @@ body {
 
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 18px;
+  align-items: end;
+}
+
+.case-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 280px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.case-picker select {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font: inherit;
+  background: white;
+  color: var(--text);
 }
 
 button {
@@ -163,6 +184,10 @@ button:hover {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 13px;
   white-space: pre-wrap;
+}
+
+.compact-block {
+  min-height: 140px;
 }
 
 .status-text {
