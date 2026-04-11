@@ -64,9 +64,35 @@ function linkedListToArray(head) {
 
 // TODO: 在这里完成你的实现
 export function mergeTwoLists(list1, list2) {
-  void list1;
-  void list2;
-  throw new Error("TODO: 请在 01-question.js 中完成实现");
+  const newList = new ListNode()
+  let newlistCurrent = newList
+  let list1Current = list1
+  let list2Current = list2
+
+  while(list1Current || list2Current){
+    if (list1Current && list2Current) {
+      if(list1Current.val >= list2Current.val){
+        newlistCurrent.next = list2Current
+        list2Current = list2Current.next
+        newlistCurrent = newlistCurrent.next
+      } else {
+        newlistCurrent.next = list1Current
+        list1Current = list1Current.next
+        newlistCurrent = newlistCurrent.next
+      }
+    }else if(list1Current){
+      newlistCurrent.next = list1Current
+      list1Current = list1Current.next
+      newlistCurrent = newlistCurrent.next
+    } else if(list2Current){
+      newlistCurrent.next = list2Current
+      list2Current = list2Current.next
+      newlistCurrent = newlistCurrent.next
+
+    }
+  }
+
+  return newList.next
 }
 
 function runExample() {
