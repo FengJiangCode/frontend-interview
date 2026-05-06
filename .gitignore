@@ -1,6 +1,9 @@
 # Resume
 resume/
 
+# Local MCP config
+.mcp.json
+
 # macOS
 .DS_Store
 .AppleDouble
