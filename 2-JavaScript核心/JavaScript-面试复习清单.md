@@ -519,7 +519,149 @@ const obj = {
 
 - 误以为箭头函数里的 `this` 指向当前对象
 - 不知道 `call`、`apply` 对箭头函数不生效
-- 把箭头函数和普通函数只差“写法更短”来理解
+- 把箭头函数和普通函数只差”写法更短”来理解
+
+**练习题**
+
+题 1：对象方法中的箭头函数
+
+```js
+const obj = {
+  name: 'Alice',
+  greet: () => {
+    console.log(this.name)
+  }
+}
+obj.greet()
+```
+
+<details>
+<summary>答案</summary>
+
+输出 `undefined`（浏览器非严格模式下是 `window.name`，通常为空字符串）。
+
+箭头函数没有自己的 `this`，它继承的是**定义时外层作用域**的 `this`，而不是调用时的 `obj`。对象字面量本身不构成作用域，所以这里的外层 `this` 是全局对象。
+</details>
+
+题 2：普通函数嵌套箭头函数
+
+```js
+const obj = {
+  name: 'Bob',
+  greet() {
+    const inner = () => {
+      console.log(this.name)
+    }
+    inner()
+  }
+}
+obj.greet()
+```
+
+<details>
+<summary>答案</summary>
+
+输出 `'Bob'`。
+
+`greet` 是普通函数，通过 `obj.greet()` 调用，所以 `greet` 内的 `this` 是 `obj`。`inner` 是箭头函数，继承外层 `greet` 的 `this`，所以也指向 `obj`。
+</details>
+
+题 3：setTimeout 中箭头函数 vs 普通函数
+
+```js
+const obj = {
+  name: 'Charlie',
+  greet() {
+    setTimeout(function () {
+      console.log(this.name)  // A
+    }, 0)
+    setTimeout(() => {
+      console.log(this.name)  // B
+    }, 0)
+  }
+}
+obj.greet()
+```
+
+<details>
+<summary>答案</summary>
+
+- A 输出 `undefined`：普通函数作为回调传入，`this` 退化为默认绑定（严格模式 `undefined`，非严格模式全局对象）
+- B 输出 `'Charlie'`：箭头函数继承 `greet` 调用时的 `this`，即 `obj`
+</details>
+
+题 4：call 对箭头函数是否有效
+
+```js
+const fn = () => {
+  console.log(this)
+}
+fn.call({ name: 'Dave' })
+```
+
+<details>
+<summary>答案</summary>
+
+输出全局对象（或严格模式下 `undefined`），而不是 `{ name: 'Dave' }`。
+
+`call`、`apply`、`bind` 无法改变箭头函数的 `this`，因为箭头函数根本没有自己的 `this`，它的 `this` 在定义时就已经确定了。
+</details>
+
+题 5：解构后调用类的箭头函数方法
+
+```js
+class Counter {
+  count = 0
+  increment = () => {
+    this.count++
+    console.log(this.count)
+  }
+}
+
+const counter = new Counter()
+const { increment } = counter
+increment()
+```
+
+如果把 `increment` 改成普通方法会怎样？
+
+<details>
+<summary>答案</summary>
+
+输出 `1`。
+
+类字段箭头函数在实例创建时绑定 `this`，指向实例本身，解构后调用依然有效。
+
+如果改成普通方法 `increment() { ... }`，解构后调用相当于直接调用，`this` 退化为默认绑定，会报 `TypeError: Cannot set properties of undefined`。
+
+这正是 React 中事件处理函数常用箭头函数写法的原因。
+</details>
+
+题 6（进阶）：外层 call 影响内层箭头函数
+
+```js
+function outer() {
+  return {
+    name: 'inner-obj',
+    fn: () => {
+      console.log(this.name)
+    }
+  }
+}
+
+const result = outer.call({ name: 'context' })
+result.fn()
+```
+
+<details>
+<summary>答案</summary>
+
+输出 `'context'`。
+
+`outer` 用 `call` 指定 `this` 为 `{ name: 'context' }` 来调用，所以 `outer` 内部的 `this` 是 `{ name: 'context' }`。箭头函数 `fn` 定义在 `outer` 执行过程中，继承了 `outer` 的 `this`。
+
+`result.fn()` 调用时虽然 `result.name` 是 `'inner-obj'`，但箭头函数的 `this` 不由调用方式决定。
+</details>
 
 ### 8. `call`、`apply`、`bind` 有什么区别？
 
@@ -1269,7 +1411,143 @@ JavaScript 主线程一次只能做一件事，但实际开发中会有定时器
 
 - 只背“宏任务微任务”，说不清整体流程
 - 把 `Promise` 说成宏任务
-- 不知道“当前宏任务结束后先清空微任务”
+- 不知道”当前宏任务结束后先清空微任务”
+
+**练习题**
+
+题 1：基础执行顺序
+
+```js
+console.log(1)
+setTimeout(() => console.log(2), 0)
+Promise.resolve().then(() => console.log(3))
+console.log(4)
+```
+
+<details>
+<summary>答案</summary>
+
+输出：`1 4 3 2`
+
+同步代码先执行（1、4），调用栈清空后先清空微任务队列（Promise.then → 3），最后执行宏任务（setTimeout → 2）。
+</details>
+
+题 2：宏任务内产生的微任务
+
+```js
+setTimeout(() => {
+  console.log(1)
+  Promise.resolve().then(() => console.log(2))
+}, 0)
+
+setTimeout(() => {
+  console.log(3)
+}, 0)
+```
+
+<details>
+<summary>答案</summary>
+
+输出：`1 2 3`
+
+第一个 `setTimeout` 是一个宏任务，执行完后立刻清空本轮产生的微任务（Promise.then → 2），清空后才取下一个宏任务（第二个 `setTimeout` → 3）。
+
+关键点：**微任务清空发生在每个宏任务结束后**，不是等所有宏任务都跑完再统一清。
+</details>
+
+题 3：async/await 的执行位置
+
+```js
+async function foo() {
+  console.log(2)
+  await Promise.resolve()
+  console.log(4)
+}
+
+console.log(1)
+foo()
+console.log(3)
+```
+
+<details>
+<summary>答案</summary>
+
+输出：`1 2 3 4`
+
+`foo()` 被调用时同步执行到 `await`，`console.log(2)` 是同步执行的。`await` 之后的代码（`console.log(4)`）会被暂停，作为微任务等待。`console.log(3)` 继续同步执行，调用栈清空后微任务才执行（`console.log(4)`）。
+</details>
+
+题 4：经典 async/await 综合题
+
+```js
+async function async1() {
+  console.log('async1 start')
+  await async2()
+  console.log('async1 end')
+}
+
+async function async2() {
+  console.log('async2')
+}
+
+console.log('start')
+setTimeout(() => console.log('timeout'), 0)
+async1()
+console.log('end')
+```
+
+<details>
+<summary>答案</summary>
+
+输出：`start → async1 start → async2 → end → async1 end → timeout`
+
+拆解过程：
+1. `console.log('start')` 同步执行
+2. `setTimeout` 回调进宏任务队列
+3. 调用 `async1()`，同步执行 `console.log('async1 start')`
+4. 执行 `await async2()`，`async2` 同步执行 `console.log('async2')` 后返回，`await` 暂停 `async1`，`async1 end` 进微任务队列
+5. `console.log('end')` 继续同步执行
+6. 调用栈清空，微任务执行：`console.log('async1 end')`
+7. 最后宏任务：`console.log('timeout')`
+</details>
+
+题 5（进阶）：宏任务中同时产生微任务和新宏任务
+
+```js
+console.log('1')
+
+setTimeout(() => {
+  console.log('2')
+  Promise.resolve().then(() => console.log('3'))
+  setTimeout(() => console.log('4'), 0)
+}, 0)
+
+Promise.resolve().then(() => {
+  console.log('5')
+  setTimeout(() => console.log('6'), 0)
+})
+
+console.log('7')
+```
+
+<details>
+<summary>答案</summary>
+
+输出：`1 → 7 → 5 → 2 → 3 → 6 → 4`
+
+逐步拆解：
+
+| 阶段 | 操作 | 输出 |
+|---|---|---|
+| 同步 | 执行 1、7，setTimeout-A 和 Promise-B 分别入队 | `1 7` |
+| 微任务 | Promise-B 执行：输出 5，setTimeout-C('6') 入宏任务队 | `5` |
+| 宏任务 | setTimeout-A 执行：输出 2，Promise-D('3') 入微任务队，setTimeout-E('4') 入宏任务队 | `2` |
+| 微任务 | Promise-D 执行：输出 3 | `3` |
+| 宏任务 | setTimeout-C 执行：输出 6 | `6` |
+| 宏任务 | setTimeout-E 执行：输出 4 | `4` |
+
+关键点：每个宏任务执行完后立刻清空微任务队列，宏任务队列先进先出。
+</details>
 
 ### 20. `setTimeout(fn, 0)` 为什么不是立即执行？
 
