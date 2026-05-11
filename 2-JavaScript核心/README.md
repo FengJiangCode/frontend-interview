@@ -9,6 +9,7 @@
 ## 文档导航
 
 - JavaScript 面试复习清单：[JavaScript-面试复习清单.md](./JavaScript-面试复习清单.md)
+- 事件循环专题：[事件循环专题.md](./事件循环专题.md)
 
 ## 当前整理策略
 
