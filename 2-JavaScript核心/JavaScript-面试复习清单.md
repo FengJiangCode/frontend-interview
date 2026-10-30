@@ -36,8 +36,8 @@ JavaScript 早期常被简单说成“基本类型和对象”，但在面试里
 比如：
 
 ```js
-let a
-let b = null
+let a;
+let b = null;
 ```
 
 这里 `a` 是“未赋值”，`b` 是“主动置空”。
@@ -82,9 +82,9 @@ let b = null
 比如：
 
 ```js
-0 == false // true
-'' == false // true
-null == undefined // true
+0 == false; // true
+"" == false; // true
+null == undefined; // true
 ```
 
 这些结果本身不一定错，但它们的可读性和可预测性都比较差。
@@ -93,7 +93,7 @@ null == undefined // true
 所以：
 
 ```js
-0 === false // false
+0 === false; // false
 ```
 
 在业务代码里更推荐使用 `===`，因为它的判断规则更稳定，排查问题也更直接。
@@ -163,9 +163,10 @@ JavaScript 是弱类型语言，不同类型的值在一起参与比较或运算
 例如：
 
 ```js
-'1' + 2 // '12'
-'1' - 2 // -1
-+true // 1
+"1" + 2; // '12'
+"1" -
+  2 + // -1
+  true; // 1
 ```
 
 这里 `+` 在字符串存在时更容易走拼接，而减法会把两边都转成数字。
@@ -196,7 +197,7 @@ JavaScript 会把值转成布尔值后再判断真假。
 可以看一个经典案例：
 
 ```js
-[] == false // true
+[] == false; // true
 ```
 
 拆解过程如下：
@@ -211,7 +212,7 @@ JavaScript 会把值转成布尔值后再判断真假。
 再看一个更容易混乱的例子：
 
 ```js
-[] == ![] // true
+[] == ![]; // true
 ```
 
 拆解时不要一下子想太多，按顺序看：
@@ -227,7 +228,7 @@ JavaScript 会把值转成布尔值后再判断真假。
 再做一个对照：
 
 ```js
-[] === false // false
+[] === false; // false
 ```
 
 因为 `===` 不做隐式类型转换，左边是对象，右边是布尔值，类型不同，直接就是 `false`。
@@ -290,14 +291,14 @@ JavaScript 中常见的作用域有：
 比如：
 
 ```js
-const a = 1
+const a = 1;
 
 function outer() {
-  const b = 2
+  const b = 2;
   function inner() {
-    console.log(a, b)
+    console.log(a, b);
   }
-  inner()
+  inner();
 }
 ```
 
@@ -345,14 +346,14 @@ function outer() {
 
 ```js
 function createCounter() {
-  let count = 0
+  let count = 0;
   return function () {
-    count++
-    return count
-  }
+    count++;
+    return count;
+  };
 }
 
-const counter = createCounter()
+const counter = createCounter();
 ```
 
 这里 `createCounter` 执行结束后，按常规理解它的局部变量应该被销毁，但返回的内部函数还在引用 `count`，所以这个变量会继续保留。
@@ -414,11 +415,11 @@ const counter = createCounter()
 
 ```js
 function fn() {
-  console.log(this)
+  console.log(this);
 }
 
-const obj = { fn }
-obj.fn()
+const obj = { fn };
+obj.fn();
 ```
 
 这里 `fn` 是通过 `obj.fn()` 调用的，所以 `this` 指向 `obj`。
@@ -485,11 +486,11 @@ obj.fn()
 
 ```js
 const obj = {
-  name: 'js',
+  name: "js",
   fn: () => {
-    console.log(this.name)
-  }
-}
+    console.log(this.name);
+  },
+};
 ```
 
 这里很多人以为会输出 `js`，但箭头函数没有自己的 `this`，它不会因为写在对象里就自动绑定到 `obj`，而是取决于外层作用域。
@@ -527,12 +528,12 @@ const obj = {
 
 ```js
 const obj = {
-  name: 'Alice',
+  name: "Alice",
   greet: () => {
-    console.log(this.name)
-  }
-}
-obj.greet()
+    console.log(this.name);
+  },
+};
+obj.greet();
 ```
 
 <details>
@@ -541,21 +542,22 @@ obj.greet()
 输出 `undefined`（浏览器非严格模式下是 `window.name`，通常为空字符串）。
 
 箭头函数没有自己的 `this`，它继承的是**定义时外层作用域**的 `this`，而不是调用时的 `obj`。对象字面量本身不构成作用域，所以这里的外层 `this` 是全局对象。
+
 </details>
 
 题 2：普通函数嵌套箭头函数
 
 ```js
 const obj = {
-  name: 'Bob',
+  name: "Bob",
   greet() {
     const inner = () => {
-      console.log(this.name)
-    }
-    inner()
-  }
-}
-obj.greet()
+      console.log(this.name);
+    };
+    inner();
+  },
+};
+obj.greet();
 ```
 
 <details>
@@ -564,23 +566,24 @@ obj.greet()
 输出 `'Bob'`。
 
 `greet` 是普通函数，通过 `obj.greet()` 调用，所以 `greet` 内的 `this` 是 `obj`。`inner` 是箭头函数，继承外层 `greet` 的 `this`，所以也指向 `obj`。
+
 </details>
 
 题 3：setTimeout 中箭头函数 vs 普通函数
 
 ```js
 const obj = {
-  name: 'Charlie',
+  name: "Charlie",
   greet() {
     setTimeout(function () {
-      console.log(this.name)  // A
-    }, 0)
+      console.log(this.name); // A
+    }, 0);
     setTimeout(() => {
-      console.log(this.name)  // B
-    }, 0)
-  }
-}
-obj.greet()
+      console.log(this.name); // B
+    }, 0);
+  },
+};
+obj.greet();
 ```
 
 <details>
@@ -594,9 +597,9 @@ obj.greet()
 
 ```js
 const fn = () => {
-  console.log(this)
-}
-fn.call({ name: 'Dave' })
+  console.log(this);
+};
+fn.call({ name: "Dave" });
 ```
 
 <details>
@@ -605,22 +608,23 @@ fn.call({ name: 'Dave' })
 输出全局对象（或严格模式下 `undefined`），而不是 `{ name: 'Dave' }`。
 
 `call`、`apply`、`bind` 无法改变箭头函数的 `this`，因为箭头函数根本没有自己的 `this`，它的 `this` 在定义时就已经确定了。
+
 </details>
 
 题 5：解构后调用类的箭头函数方法
 
 ```js
 class Counter {
-  count = 0
+  count = 0;
   increment = () => {
-    this.count++
-    console.log(this.count)
-  }
+    this.count++;
+    console.log(this.count);
+  };
 }
 
-const counter = new Counter()
-const { increment } = counter
-increment()
+const counter = new Counter();
+const { increment } = counter;
+increment();
 ```
 
 如果把 `increment` 改成普通方法会怎样？
@@ -635,6 +639,7 @@ increment()
 如果改成普通方法 `increment() { ... }`，解构后调用相当于直接调用，`this` 退化为默认绑定，会报 `TypeError: Cannot set properties of undefined`。
 
 这正是 React 中事件处理函数常用箭头函数写法的原因。
+
 </details>
 
 题 6（进阶）：外层 call 影响内层箭头函数
@@ -642,15 +647,15 @@ increment()
 ```js
 function outer() {
   return {
-    name: 'inner-obj',
+    name: "inner-obj",
     fn: () => {
-      console.log(this.name)
-    }
-  }
+      console.log(this.name);
+    },
+  };
 }
 
-const result = outer.call({ name: 'context' })
-result.fn()
+const result = outer.call({ name: "context" });
+result.fn();
 ```
 
 <details>
@@ -661,6 +666,7 @@ result.fn()
 `outer` 用 `call` 指定 `this` 为 `{ name: 'context' }` 来调用，所以 `outer` 内部的 `this` 是 `{ name: 'context' }`。箭头函数 `fn` 定义在 `outer` 执行过程中，继承了 `outer` 的 `this`。
 
 `result.fn()` 调用时虽然 `result.name` 是 `'inner-obj'`，但箭头函数的 `this` 不由调用方式决定。
+
 </details>
 
 ### 8. `call`、`apply`、`bind` 有什么区别？
@@ -685,7 +691,7 @@ result.fn()
 - 参数逐个传入
 
 ```js
-fn.call(obj, 1, 2)
+fn.call(obj, 1, 2);
 ```
 
 `apply`：
@@ -694,7 +700,7 @@ fn.call(obj, 1, 2)
 - 参数以数组或类数组形式传入
 
 ```js
-fn.apply(obj, [1, 2])
+fn.apply(obj, [1, 2]);
 ```
 
 `bind`：
@@ -703,8 +709,8 @@ fn.apply(obj, [1, 2])
 - 返回一个新的绑定函数
 
 ```js
-const newFn = fn.bind(obj, 1, 2)
-newFn()
+const newFn = fn.bind(obj, 1, 2);
+newFn();
 ```
 
 在面试里还可以补一句：它们只能改变普通函数的 `this`，对箭头函数的 `this` 基本无效，因为箭头函数没有自己的 `this`。
@@ -760,11 +766,11 @@ JavaScript 的对象系统不是传统类式继承，而是基于原型的。
 ```js
 function Person() {}
 Person.prototype.sayHi = function () {
-  console.log('hi')
-}
+  console.log("hi");
+};
 
-const p = new Person()
-p.sayHi()
+const p = new Person();
+p.sayHi();
 ```
 
 `p` 本身没有 `sayHi`，但它会沿着原型链去 `Person.prototype` 上找，所以可以访问到这个方法。
@@ -817,7 +823,7 @@ p.sayHi()
 
 ```js
 function Person() {}
-Person.prototype.sayHi = function () {}
+Person.prototype.sayHi = function () {};
 ```
 
 `__proto__`：
@@ -829,8 +835,8 @@ Person.prototype.sayHi = function () {}
 例如：
 
 ```js
-const p = new Person()
-console.log(p.__proto__ === Person.prototype) // true
+const p = new Person();
+console.log(p.__proto__ === Person.prototype); // true
 ```
 
 面试里最好补一句：业务代码里不推荐直接依赖 `__proto__`，更推荐用 `Object.getPrototypeOf()` 和 `Object.setPrototypeOf()` 这类标准方式操作原型。
@@ -951,10 +957,10 @@ ES6 `class extends`：
 
 ```js
 function Person(name) {
-  this.name = name
+  this.name = name;
 }
 
-const p = new Person('Tom')
+const p = new Person("Tom");
 ```
 
 执行后 `p` 会拿到 `name` 属性，同时 `p` 的原型会指向 `Person.prototype`，这样它才能访问原型上的共享方法。
@@ -982,11 +988,12 @@ const p = new Person('Tom')
 
 ```js
 function myNew(Constructor, ...args) {
-  const obj = Object.create(Constructor.prototype)
-  const result = Constructor.apply(obj, args)
-  return result !== null && (typeof result === 'object' || typeof result === 'function')
+  const obj = Object.create(Constructor.prototype);
+  const result = Constructor.apply(obj, args);
+  return result !== null &&
+    (typeof result === "object" || typeof result === "function")
     ? result
-    : obj
+    : obj;
 }
 ```
 
@@ -999,17 +1006,17 @@ function myNew(Constructor, ...args) {
 
 ```js
 function Person(name) {
-  this.name = name
+  this.name = name;
 }
 
 Person.prototype.sayHi = function () {
-  return `Hi, ${this.name}`
-}
+  return `Hi, ${this.name}`;
+};
 
-const p = myNew(Person, 'Tom')
+const p = myNew(Person, "Tom");
 
-console.log(p.name) // 'Tom'
-console.log(p.sayHi()) // 'Hi, Tom'
+console.log(p.name); // 'Tom'
+console.log(p.sayHi()); // 'Hi, Tom'
 ```
 
 - 这个例子说明 `myNew` 不只是创建了对象，还正确建立了原型链，所以实例既能拿到构造函数里定义的属性，也能访问原型上的方法。
@@ -1093,7 +1100,7 @@ Promise 的核心价值在于：
 ```js
 fetchData()
   .then((res) => handleRes(res))
-  .catch((err) => handleErr(err))
+  .catch((err) => handleErr(err));
 ```
 
 它让异步流程更像“数据流转”而不是“层层回调”。
@@ -1186,7 +1193,7 @@ Promise 在刚创建时处于 `pending`，表示“还没有最终结果”。
 `then` 最常见的写法是：
 
 ```js
-promise.then(onFulfilled, onRejected)
+promise.then(onFulfilled, onRejected);
 ```
 
 但实际开发里通常更推荐把错误处理交给 `catch`，因为语义更清晰。
@@ -1319,10 +1326,10 @@ promise.then(onFulfilled, onRejected)
 ```js
 async function getData() {
   try {
-    const res = await fetchData()
-    return res
+    const res = await fetchData();
+    return res;
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
 }
 ```
@@ -1418,10 +1425,10 @@ JavaScript 主线程一次只能做一件事，但实际开发中会有定时器
 题 1：基础执行顺序
 
 ```js
-console.log(1)
-setTimeout(() => console.log(2), 0)
-Promise.resolve().then(() => console.log(3))
-console.log(4)
+console.log(1);
+setTimeout(() => console.log(2), 0);
+Promise.resolve().then(() => console.log(3));
+console.log(4);
 ```
 
 <details>
@@ -1430,19 +1437,20 @@ console.log(4)
 输出：`1 4 3 2`
 
 同步代码先执行（1、4），调用栈清空后先清空微任务队列（Promise.then → 3），最后执行宏任务（setTimeout → 2）。
+
 </details>
 
 题 2：宏任务内产生的微任务
 
 ```js
 setTimeout(() => {
-  console.log(1)
-  Promise.resolve().then(() => console.log(2))
-}, 0)
+  console.log(1);
+  Promise.resolve().then(() => console.log(2));
+}, 0);
 
 setTimeout(() => {
-  console.log(3)
-}, 0)
+  console.log(3);
+}, 0);
 ```
 
 <details>
@@ -1453,20 +1461,21 @@ setTimeout(() => {
 第一个 `setTimeout` 是一个宏任务，执行完后立刻清空本轮产生的微任务（Promise.then → 2），清空后才取下一个宏任务（第二个 `setTimeout` → 3）。
 
 关键点：**微任务清空发生在每个宏任务结束后**，不是等所有宏任务都跑完再统一清。
+
 </details>
 
 题 3：async/await 的执行位置
 
 ```js
 async function foo() {
-  console.log(2)
-  await Promise.resolve()
-  console.log(4)
+  console.log(2);
+  await Promise.resolve();
+  console.log(4);
 }
 
-console.log(1)
-foo()
-console.log(3)
+console.log(1);
+foo();
+console.log(3);
 ```
 
 <details>
@@ -1475,25 +1484,26 @@ console.log(3)
 输出：`1 2 3 4`
 
 `foo()` 被调用时同步执行到 `await`，`console.log(2)` 是同步执行的。`await` 之后的代码（`console.log(4)`）会被暂停，作为微任务等待。`console.log(3)` 继续同步执行，调用栈清空后微任务才执行（`console.log(4)`）。
+
 </details>
 
 题 4：经典 async/await 综合题
 
 ```js
 async function async1() {
-  console.log('async1 start')
-  await async2()
-  console.log('async1 end')
+  console.log("async1 start");
+  await async2();
+  console.log("async1 end");
 }
 
 async function async2() {
-  console.log('async2')
+  console.log("async2");
 }
 
-console.log('start')
-setTimeout(() => console.log('timeout'), 0)
-async1()
-console.log('end')
+console.log("start");
+setTimeout(() => console.log("timeout"), 0);
+async1();
+console.log("end");
 ```
 
 <details>
@@ -1502,6 +1512,7 @@ console.log('end')
 输出：`start → async1 start → async2 → end → async1 end → timeout`
 
 拆解过程：
+
 1. `console.log('start')` 同步执行
 2. `setTimeout` 回调进宏任务队列
 3. 调用 `async1()`，同步执行 `console.log('async1 start')`
@@ -1514,20 +1525,20 @@ console.log('end')
 题 5（进阶）：宏任务中同时产生微任务和新宏任务
 
 ```js
-console.log('1')
+console.log("1");
 
 setTimeout(() => {
-  console.log('2')
-  Promise.resolve().then(() => console.log('3'))
-  setTimeout(() => console.log('4'), 0)
-}, 0)
+  console.log("2");
+  Promise.resolve().then(() => console.log("3"));
+  setTimeout(() => console.log("4"), 0);
+}, 0);
 
 Promise.resolve().then(() => {
-  console.log('5')
-  setTimeout(() => console.log('6'), 0)
-})
+  console.log("5");
+  setTimeout(() => console.log("6"), 0);
+});
 
-console.log('7')
+console.log("7");
 ```
 
 <details>
@@ -1537,16 +1548,17 @@ console.log('7')
 
 逐步拆解：
 
-| 阶段 | 操作 | 输出 |
-|---|---|---|
-| 同步 | 执行 1、7，setTimeout-A 和 Promise-B 分别入队 | `1 7` |
-| 微任务 | Promise-B 执行：输出 5，setTimeout-C('6') 入宏任务队 | `5` |
-| 宏任务 | setTimeout-A 执行：输出 2，Promise-D('3') 入微任务队，setTimeout-E('4') 入宏任务队 | `2` |
-| 微任务 | Promise-D 执行：输出 3 | `3` |
-| 宏任务 | setTimeout-C 执行：输出 6 | `6` |
-| 宏任务 | setTimeout-E 执行：输出 4 | `4` |
+| 阶段   | 操作                                                                               | 输出  |
+| ------ | ---------------------------------------------------------------------------------- | ----- |
+| 同步   | 执行 1、7，setTimeout-A 和 Promise-B 分别入队                                      | `1 7` |
+| 微任务 | Promise-B 执行：输出 5，setTimeout-C('6') 入宏任务队                               | `5`   |
+| 宏任务 | setTimeout-A 执行：输出 2，Promise-D('3') 入微任务队，setTimeout-E('4') 入宏任务队 | `2`   |
+| 微任务 | Promise-D 执行：输出 3                                                             | `3`   |
+| 宏任务 | setTimeout-C 执行：输出 6                                                          | `6`   |
+| 宏任务 | setTimeout-E 执行：输出 4                                                          | `4`   |
 
 关键点：每个宏任务执行完后立刻清空微任务队列，宏任务队列先进先出。
+
 </details>
 
 ### 20. `setTimeout(fn, 0)` 为什么不是立即执行？
@@ -1569,19 +1581,19 @@ console.log('7')
 例如：
 
 ```js
-console.log(1)
-setTimeout(() => console.log(2), 0)
-Promise.resolve().then(() => console.log(3))
-console.log(4)
+console.log(1);
+setTimeout(() => console.log(2), 0);
+Promise.resolve().then(() => console.log(3));
+console.log(4);
 ```
 
 结果通常是：
 
 ```js
-1
-4
-3
-2
+1;
+4;
+3;
+2;
 ```
 
 因为同步代码先执行，再执行微任务，最后才轮到 `setTimeout` 的宏任务。
@@ -1625,9 +1637,9 @@ console.log(4)
 浅拷贝示例：
 
 ```js
-const obj1 = { a: 1, b: { c: 2 } }
-const obj2 = { ...obj1 }
-obj2.b.c = 3
+const obj1 = { a: 1, b: { c: 2 } };
+const obj2 = { ...obj1 };
+obj2.b.c = 3;
 ```
 
 这里虽然 `obj2` 是新对象，但 `b` 仍然和 `obj1` 指向同一个嵌套对象，所以修改会互相影响。
@@ -1829,14 +1841,14 @@ ES Module 的特点：
 
 ```js
 function a() {
-  b()
+  b();
 }
 
 function b() {
-  console.log('b')
+  console.log("b");
 }
 
-a()
+a();
 ```
 
 执行过程可以这样理解：

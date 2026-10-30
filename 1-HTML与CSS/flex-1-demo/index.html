@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>flex: 1 对照实验台</title>
+<style>
+  :root {
+    --ink: #16181d;
+    --soft: #5a616b;
+    --faint: #8b919a;
+    --line: #c9ced6;
+    --field: #e5e8ec;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 28px 24px 64px;
+    background: #f5f6f7;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .lead { margin: 0 0 32px; color: var(--soft); max-width: 60ch; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .92em;
+    background: rgba(22, 24, 29, .07);
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+
+  /* ---- 每一行 = 一个变量 ---- */
+  .row { margin-bottom: 26px; }
+
+  .row h2 {
+    margin: 0 0 2px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .row .hint {
+    margin: 0 0 8px;
+    font-size: 12.5px;
+    color: var(--faint);
+  }
+
+  /* 容器：灰色底，方便看清剩余空间怎么分 */
+  .flex {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: var(--field);
+    border-radius: 4px;
+    min-height: 44px;
+    align-items: stretch;
+  }
+
+  /* 子项：白底 + 描边。
+     注意这里故意不写 overflow: hidden —— 那会让 min-width: auto 解析成 0，
+     ④ 就复现不出来了。修剪交给容器上的 .clip。 */
+  .item {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .item.plain { white-space: nowrap; }
+
+  /* 只裁视觉，不碰子项自身的 overflow，所以不影响 flex 的尺寸计算 */
+  .flex.clip { overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>flex: 1 对照实验台</h1>
+  <p class="lead">
+    每一行只改一个变量。子项的 <code>style</code> 是内联写死的，在 Elements 里点开就能看到实际生效的声明；
+    打开控制台会自动打印一张表，窗口宽度变化后运行 <code>inspectAll()</code> 重新测量。
+  </p>
+
+  <!-- ① -->
+  <div class="row" data-case="flex:1">
+    <h2>① flex: 1</h2>
+    <p class="hint">basis 被清零（0%），三项严格等宽，完全不管内容多长</p>
+    <div class="flex">
+      <div class="item" style="flex: 1">a</div>
+      <div class="item" style="flex: 1">b 这段内容明显长很多</div>
+      <div class="item" style="flex: 1">c</div>
+    </div>
+  </div>
+
+  <!-- ② -->
+  <div class="row" data-case="flex:auto">
+    <h2>② flex: auto</h2>
+    <p class="hint">basis 是 auto，先按内容宽度占位，再把剩余空间按 grow 分掉 → 内容长的更宽</p>
+    <div class="flex">
+      <div class="item" style="flex: auto">a</div>
+      <div class="item" style="flex: auto">b 这段内容明显长很多</div>
+      <div class="item" style="flex: auto">c</div>
+    </div>
+  </div>
+
+  <!-- ③ -->
+  <div class="row" data-case="只写 flex-grow:1">
+    <h2>③ 只写 flex-grow: 1（不用简写）</h2>
+    <p class="hint">basis 仍是默认的 auto → 渲染结果和 ② 完全一样，这就是"以为等价其实没生效"的那个坑</p>
+    <div class="flex">
+      <div class="item" style="flex-grow: 1">a</div>
+      <div class="item" style="flex-grow: 1">b 这段内容明显长很多</div>
+      <div class="item" style="flex-grow: 1">c</div>
+    </div>
+  </div>
+
+  <!-- ④ -->
+  <div class="row" data-case="flex:1 + 长内容">
+    <h2>④ flex: 1 撞上不可换行的长内容</h2>
+    <p class="hint">min-width 默认是 auto（地板 = 内容的 min-content）→ 中间那项被托住下不来，另外两项只好让位，三项不再等宽</p>
+    <div class="flex">
+      <div class="item plain" style="flex: 1">a</div>
+      <div class="item plain" style="flex: 1">https://example.com/a-very-long-path-that-never-breaks</div>
+      <div class="item plain" style="flex: 1">c</div>
+    </div>
+  </div>
+
+  <!-- ⑤ -->
+  <div class="row" data-case="flex:1 + min-width:0">
+    <h2>⑤ 同样内容，补上 min-width: 0</h2>
+    <p class="hint">地板拆掉后 grow 才能正常发力 → 三项重新等宽；代价是文字装不下时会溢出自身盒子（这里由容器的 <code>.clip</code> 收边）</p>
+    <div class="flex clip">
+      <div class="item plain" style="flex: 1; min-width: 0">a</div>
+      <div class="item plain" style="flex: 1; min-width: 0">https://example.com/a-very-long-path-that-never-breaks</div>
+      <div class="item plain" style="flex: 1; min-width: 0">c</div>
+    </div>
+  </div>
+
+  <!-- ⑥ -->
+  <div class="row" data-case="flex:none">
+    <h2>⑥ flex: none</h2>
+    <p class="hint">flex-grow: 0; flex-shrink: 0; flex-basis: auto → 各按内容占位，剩余空间没人要，全部空着</p>
+    <div class="flex">
+      <div class="item" style="flex: none">a</div>
+      <div class="item" style="flex: none">b 这段内容明显长很多</div>
+      <div class="item" style="flex: none">c</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var round = function (n) { return Math.round(n * 10) / 10; };
+
+  /**
+   * 把每一行的计算值和实测宽度打成一张表。
+   * 窗口宽度变了以后手动跑一次 inspectAll() 就行。
+   */
+  window.inspectAll = function () {
+    var rows = [];
+
+    Array.prototype.forEach.call(document.querySelectorAll(".flex"), function (flex) {
+      var caseName = flex.closest(".row").dataset.case;
+      var items = flex.querySelectorAll(".item");
+      var total = flex.getBoundingClientRect().width;
+      var cs0 = getComputedStyle(flex);
+      var gaps = parseFloat(cs0.gap) * (items.length - 1);
+      var inner = total - parseFloat(cs0.paddingLeft) - parseFloat(cs0.paddingRight);
+      var equalShare = (inner - gaps) / items.length;
+
+      Array.prototype.forEach.call(items, function (item, i) {
+        var cs = getComputedStyle(item);
+        var w = item.getBoundingClientRect().width;
+
+        rows.push({
+          场景: caseName,
+          项: i + 1,
+          "flex-grow": cs.flexGrow,
+          "flex-shrink": cs.flexShrink,
+          "flex-basis": cs.flexBasis,
+          "min-width": cs.minWidth,
+          实测宽: round(w),
+          等分应得: round(equalShare),
+          内容宽: round(item.scrollWidth),
+          超出: item.scrollWidth > Math.ceil(w) + 1 ? "是" : ""
+        });
+      });
+    });
+
+    console.table(rows);
+    return rows;
+  };
+
+  console.log(
+    "%c对照要点：② 和 ③ 的 flex-basis 不同吗？④ 里三项的实测宽还相等吗？",
+    "color:#0C6450;font-weight:600"
+  );
+  console.log("%c窗口宽度变化后，运行 inspectAll() 重新测量", "color:#8b919a");
+  window.inspectAll();
+})();
+</script>
+</body>
+</html>

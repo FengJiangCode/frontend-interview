@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>margin 折叠实验室</title>
+<style>
+/* ============ 设计变量 ============ */
+:root {
+  --paper:      #E8EAEC;
+  --surface:    #F8F9FA;
+  --ink:        #14161B;
+  --ink-soft:   #4C525B;
+  --ink-faint:  #868C95;
+  --line:       #C4C8CF;
+  --line-soft:  #E2E4E8;
+  --bad:        #BE3D2A;
+  --good:       #0C6450;
+  --box-fill:   #C3C9D3;
+  --font-display: "Songti SC", "Source Han Serif SC", "Noto Serif SC", ui-serif, Georgia, serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.4, 0, .2, 1);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding: 40px 24px 72px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ============ 页首 ============ */
+.eyebrow {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+h1 {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 4.6vw, 42px);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+
+.lead {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--ink-soft);
+}
+
+.lead code {
+  font-family: var(--font-mono);
+  font-size: .92em;
+  background: rgba(20, 22, 27, .06);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+/* ============ 场景卡片 ============ */
+.case {
+  margin-top: 40px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.case-head {
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.case-tag {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: var(--ink-faint);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 1px 7px;
+}
+
+.case h2 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.case-note {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.case-note code { font-family: var(--font-mono); font-size: .92em; }
+
+/* ============ 分段控件 ============ */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.controls-label {
+  font-size: 13px;
+  color: var(--ink-faint);
+  margin-right: 2px;
+}
+
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 3px;
+  border: 0;
+  background: rgba(20, 22, 27, .05);
+  border-radius: 4px;
+}
+
+.seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.seg label { display: block; }
+
+.seg input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.seg span {
+  display: block;
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+
+.seg span:hover { color: var(--ink); }
+
+.seg input:checked + span {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.seg input:focus-visible + span {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ============ 对比台 ============ */
+.bench {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--line-soft);
+}
+
+.pane:last-child { border-right: 0; }
+
+.pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px dashed var(--line-soft);
+}
+
+.pane-title {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pane-title::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.pane[data-state="collapsed"] .pane-title::before { background: var(--bad); }
+.pane[data-state="separated"] .pane-title::before { background: var(--good); }
+
+.pane-fix {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+/* 图纸底纹：8px 方格，提示这是一块可测量的场地 */
+.stage {
+  position: relative;
+  flex: 1;
+  padding: 30px 64px 30px 72px;
+  background-color: #FCFCFD;
+  background-image:
+    linear-gradient(rgba(20, 22, 27, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 22, 27, .055) 1px, transparent 1px);
+  background-size: 8px 8px;
+  background-position: -1px -1px;
+}
+
+/* ============ 盒子 ============ */
+.box-parent,
+.box-child,
+.box-a,
+.box-b {
+  position: relative;
+  border-radius: 2px;
+}
+
+.box-parent {
+  background: var(--box-fill);
+  outline: 1px dashed #6E7683;
+  outline-offset: -1px;
+  transition: height .3s var(--ease);
+}
+
+.box-child {
+  height: 56px;
+  margin-top: var(--child-mt, 40px);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.box-a, .box-b {
+  height: 42px;
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.box-a { margin-bottom: 30px; }
+.box-b { margin-top: 50px; }
+
+.box-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+
+/* 折叠时被"吞掉 / 漏出"的 margin 区域，用斜纹画出来 */
+.box-child::before {                /* 子元素的 margin-top 区 */
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(-1 * var(--child-mt, 40px));
+  height: var(--child-mt, 40px);
+  border: 1px dashed;
+  background-image: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 6px);
+  opacity: .45;
+  color: var(--bad);
+}
+
+.box-a::after {                     /* A 的 margin-bottom 区：45° 斜纹 */
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  top: 100%;
+  height: 30px;
+  border: 1px dashed;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+  background-image: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 6px);
+  opacity: .5;
+  color: var(--bad);
+}
+
+.box-b::before {                    /* B 的 margin-top 区：-45° 斜纹，重叠处成十字剖面 */
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  top: -50px;
+  height: 50px;
+  border: 1px dashed;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+  background-image: repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 6px);
+  opacity: .5;
+  color: var(--bad);
+}
+
+/* 状态配色：折叠 = 朱红，已隔离 = 松绿 */
+.pane[data-state="collapsed"] .box-child::before,
+.pane[data-state="collapsed"] .box-a::after,
+.pane[data-state="collapsed"] .box-b::before { color: var(--bad); }
+
+.pane[data-state="separated"] .box-child::before,
+.pane[data-state="separated"] .box-a::after,
+.pane[data-state="separated"] .box-b::before { color: var(--good); }
+
+/* ============ 各修复方案的 CSS ============ */
+/* 父子：能创建 BFC 的两种 */
+[data-case="parent"] .pane[data-fix="flow-root"] .box-parent { display: flow-root; }
+[data-case="parent"] .pane[data-fix="overflow"]  .box-parent { overflow: hidden; }
+
+/* 父子：不创建 BFC，靠"边界"阻断折叠 —— 原理是另一条规则 */
+[data-case="parent"] .pane[data-fix="padding"] .box-parent { padding-top: 1px; }
+[data-case="parent"] .pane[data-fix="border"]  .box-parent { border-top: 1px solid var(--line); }
+
+/* 兄弟：display: contents 让容器"不存在"，B 和 A 落回同一个 BFC */
+[data-case="sibling"] .pane[data-fix="none"] .wrap { display: contents; }
+
+[data-case="sibling"] .pane[data-fix="bfc"] .wrap {
+  display: flow-root;
+  outline: 1px dashed var(--good);
+  outline-offset: -1px;
+}
+
+[data-case="sibling"] .pane[data-fix="bfc"] .wrap { color: var(--good); }
+
+/* ============ 尺寸标注线（本页的记号） ============ */
+.dim {
+  position: absolute;
+  width: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition: top .3s var(--ease), height .3s var(--ease), opacity .18s var(--ease);
+}
+
+.dim::before,
+.dim::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  width: 9px;
+  height: 1px;
+  background: currentColor;
+}
+
+.dim::before { top: 0; }
+.dim::after  { bottom: 0; }
+
+.dim-value {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1px 5px;
+  background: #FCFCFD;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.pane[data-state] .dim { opacity: 1; }
+
+.dim[data-dim="parent-height"] { left: 24px; color: var(--ink-soft); }
+.dim[data-dim="gap"]           { right: 22px; color: var(--ink-soft); }
+
+/* ============ 读数 ============ */
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 14px 20px;
+  border-top: 1px dashed var(--line-soft);
+}
+
+.metric { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+
+.metric-key {
+  font-size: 12px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pane[data-state="collapsed"] .metric-val { color: var(--bad); }
+.pane[data-state="separated"] .metric-val { color: var(--good); }
+
+/* ============ 收尾说明 ============ */
+.notes {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  background: var(--line-soft);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.note {
+  background: var(--surface);
+  padding: 20px 22px 22px;
+}
+
+.note h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.note ul { margin: 0; padding-left: 18px; }
+
+.note li { margin-bottom: 6px; color: var(--ink-soft); font-size: 14px; }
+
+.note li:last-child { margin-bottom: 0; }
+
+.note code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: rgba(20, 22, 27, .06);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+.rule {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 13.5px;
+}
+
+/* ============ 响应式 / 无障碍 ============ */
+@media (max-width: 760px) {
+  body { padding: 28px 14px 56px; }
+  .bench { grid-template-columns: 1fr; }
+  .pane { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+  .pane:last-child { border-bottom: 0; }
+  .stage { padding: 26px 52px 26px 62px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">CSS 盒模型 / Block Formatting Context</p>
+    <h1>两个 margin 相遇，只留最大的那个</h1>
+    <p class="lead">
+      相邻的垂直 <code>margin</code> 不会相加，而是折叠成其中的最大值——这是布局里最容易被"看着不对但说不出哪不对"缠住的地方。
+      下面两个场景是真实现场。切换右侧的修复方式，看它和左侧基准差在哪，标注线上的数字会跟着变。
+    </p>
+  </header>
+
+  <!-- ========== 场景一：父子折叠 ========== -->
+  <section class="case" data-case="parent" id="case-parent">
+    <div class="case-head">
+      <span class="case-tag">父元素 ↔ 子元素</span>
+      <h2>子元素的 margin-top 顶穿了父元素</h2>
+      <p class="case-note">
+        父元素没有 <code>border</code>、没有 <code>padding</code>。子元素 <code>margin-top: 40px</code>，高 56px —— 猜猜父元素多高？
+      </p>
+    </div>
+
+    <div class="controls">
+      <span class="controls-label">右侧修复方式</span>
+      <fieldset class="seg">
+        <legend>父元素的修复方式</legend>
+        <label><input type="radio" name="fix-parent" value="none"><span>不修复</span></label>
+        <label><input type="radio" name="fix-parent" value="flow-root" checked><span>display: flow-root</span></label>
+        <label><input type="radio" name="fix-parent" value="overflow"><span>overflow: hidden</span></label>
+        <label><input type="radio" name="fix-parent" value="padding"><span>padding-top: 1px</span></label>
+        <label><input type="radio" name="fix-parent" value="border"><span>border-top: 1px</span></label>
+      </fieldset>
+    </div>
+
+    <div class="bench">
+      <div class="pane" data-pane="base">
+        <div class="pane-head">
+          <span class="pane-title">不修复（基准）</span>
+          <span class="pane-fix">父元素 height: auto</span>
+        </div>
+        <div class="stage">
+          <div class="box-parent">
+            <div class="box-child"><span class="box-label">child · h 56</span></div>
+          </div>
+          <div class="dim" data-dim="parent-height"><span class="dim-value">—</span></div>
+        </div>
+        <div class="readout">
+          <div class="metric"><span class="metric-key">父元素高度</span><span class="metric-val" data-out="parent-height">—</span></div>
+          <div class="metric"><span class="metric-key">结果</span><span class="metric-val" data-out="parent-state">—</span></div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="fixed" data-fix="flow-root">
+        <div class="pane-head">
+          <span class="pane-title">已修复</span>
+          <span class="pane-fix" data-out="parent-fix-label">display: flow-root</span>
+        </div>
+        <div class="stage">
+          <div class="box-parent">
+            <div class="box-child"><span class="box-label">child · h 56</span></div>
+          </div>
+          <div class="dim" data-dim="parent-height"><span class="dim-value">—</span></div>
+        </div>
+        <div class="readout">
+          <div class="metric"><span class="metric-key">父元素高度</span><span class="metric-val" data-out="parent-height">—</span></div>
+          <div class="metric"><span class="metric-key">结果</span><span class="metric-val" data-out="parent-state">—</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 场景二：兄弟折叠 ========== -->
+  <section class="case" data-case="sibling" id="case-sibling">
+    <div class="case-head">
+      <span class="case-tag">相邻兄弟 A ↔ B</span>
+      <h2>A 的 margin-bottom 撞上 B 的 margin-top</h2>
+      <p class="case-note">
+        A 的 <code>margin-bottom: 30px</code>，B 的 <code>margin-top: 50px</code>。期望 80px 的间距，实际只有 50px——斜纹重叠的那块，就是两个 margin 争抢的同一段空间。
+      </p>
+    </div>
+
+    <div class="controls">
+      <span class="controls-label">右侧修复方式</span>
+      <fieldset class="seg">
+        <legend>兄弟元素之间的修复方式</legend>
+        <label><input type="radio" name="fix-sibling" value="none"><span>不修复</span></label>
+        <label><input type="radio" name="fix-sibling" value="bfc" checked><span>B 包进 BFC 容器</span></label>
+      </fieldset>
+    </div>
+
+    <div class="bench">
+      <div class="pane" data-pane="base">
+        <div class="pane-head">
+          <span class="pane-title">不修复（基准）</span>
+          <span class="pane-fix">A、B 同一个 BFC</span>
+        </div>
+        <div class="stage">
+          <div class="box-a"><span class="box-label">A · mb 30</span></div>
+          <div class="wrap">
+            <div class="box-b"><span class="box-label">B · mt 50</span></div>
+          </div>
+          <div class="dim" data-dim="gap"><span class="dim-value">—</span></div>
+        </div>
+        <div class="readout">
+          <div class="metric"><span class="metric-key">A 底边 → B 顶边</span><span class="metric-val" data-out="gap">—</span></div>
+          <div class="metric"><span class="metric-key">算法</span><span class="metric-val" data-out="gap-state">—</span></div>
+        </div>
+      </div>
+
+      <div class="pane" data-pane="fixed" data-fix="bfc">
+        <div class="pane-head">
+          <span class="pane-title">已修复</span>
+          <span class="pane-fix" data-out="sibling-fix-label">B 包进 BFC 容器</span>
+        </div>
+        <div class="stage">
+          <div class="box-a"><span class="box-label">A · mb 30</span></div>
+          <div class="wrap">
+            <div class="box-b"><span class="box-label">B · mt 50</span></div>
+          </div>
+          <div class="dim" data-dim="gap"><span class="dim-value">—</span></div>
+        </div>
+        <div class="readout">
+          <div class="metric"><span class="metric-key">A 底边 → B 顶边</span><span class="metric-val" data-out="gap">—</span></div>
+          <div class="metric"><span class="metric-key">算法</span><span class="metric-val" data-out="gap-state">—</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 收尾 ========== -->
+  <div class="notes">
+    <div class="note">
+      <h3>折叠发生的条件</h3>
+      <ul>
+        <li>两个块级盒子属于<strong>同一个 BFC</strong></li>
+        <li>它们之间没有 <code>border</code>、<code>padding</code>、行内内容或清浮动</li>
+        <li>只发生在<strong>垂直方向</strong>，水平 margin 从不折叠</li>
+      </ul>
+    </div>
+
+    <div class="note">
+      <h3>BFC 为什么能阻断</h3>
+      <p class="rule">
+        CSS 2.1 §8.3.1：创建了新 BFC 的元素，其外边距不与流内子元素折叠。
+      </p>
+      <p class="rule" style="margin-top: 10px">
+        相邻兄弟的折叠还要求二者同属一个 BFC。BFC 是一堵墙，墙内墙外的 margin 碰不到一起。
+      </p>
+    </div>
+
+    <div class="note">
+      <h3>哪些方式能创建 BFC</h3>
+      <ul>
+        <li><code>display: flow-root</code> —— 首选，零副作用</li>
+        <li><code>overflow: hidden / auto / scroll</code></li>
+        <li><code>float</code> 非 <code>none</code></li>
+        <li><code>position: absolute / fixed</code></li>
+        <li><code>display: inline-block / table-cell / flex / grid</code></li>
+      </ul>
+    </div>
+
+    <div class="note">
+      <h3>两个别踩的坑</h3>
+      <ul>
+        <li>上面 <code>padding-top</code> / <code>border-top</code> 也能阻断折叠，但那不是 BFC——是"边界"这条独立规则。面试里分清楚会加分。</li>
+        <li><code>overflow: hidden</code> 顺手裁剪溢出内容、可能改变 <code>sticky</code> 的滚动容器。<code>flow-root</code> 没有这些问题。</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var round = function (n) { return Math.round(n * 10) / 10; };
+  var px = function (n) { return round(n) + "px"; };
+
+  /** 取元素相对 stage 的几何信息，供标注线定位 */
+  function relRect(el, host) {
+    var a = el.getBoundingClientRect();
+    var b = host.getBoundingClientRect();
+    return {
+      top: a.top - b.top,
+      bottom: a.bottom - b.top,
+      height: a.height
+    };
+  }
+
+  function setDim(pane, name, top, height, text) {
+    var dim = pane.querySelector('[data-dim="' + name + '"]');
+    if (!dim) return;
+    dim.style.top = top + "px";
+    dim.style.height = Math.max(height, 1) + "px";
+    dim.querySelector(".dim-value").textContent = text;
+  }
+
+  /* ---------- 场景一：父子折叠 ---------- */
+
+  function measureParent() {
+    var panes = document.querySelectorAll('[data-case="parent"] .pane');
+
+    Array.prototype.forEach.call(panes, function (pane) {
+      var stage = pane.querySelector(".stage");
+      var parent = pane.querySelector(".box-parent");
+      var child = pane.querySelector(".box-child");
+
+      var cs = getComputedStyle(parent);
+      var pr = relRect(parent, stage);
+      var childH = child.getBoundingClientRect().height;
+      var mt = parseFloat(getComputedStyle(child).marginTop);
+
+      // 不折叠时父元素应有的高度 = 子元素 margin + 子元素高 + 父元素自身的 padding/border
+      var chrome = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
+                   parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+      var expected = mt + childH + chrome;
+      var collapsed = Math.abs(pr.height - expected) > 0.5;
+
+      pane.dataset.state = collapsed ? "collapsed" : "separated";
+      pane.querySelector('[data-out="parent-height"]').textContent = px(pr.height);
+      pane.querySelector('[data-out="parent-state"]').textContent = collapsed
+        ? "margin 漏到父元素外，" + px(mt) + " 被吞"
+        : "margin 被包进来，父元素长高 " + px(mt);
+
+      setDim(pane, "parent-height", pr.top, pr.height, px(pr.height));
+    });
+  }
+
+  /* ---------- 场景二：兄弟折叠 ---------- */
+
+  function measureSibling() {
+    var panes = document.querySelectorAll('[data-case="sibling"] .pane');
+
+    Array.prototype.forEach.call(panes, function (pane) {
+      var stage = pane.querySelector(".stage");
+      var a = pane.querySelector(".box-a");
+      var b = pane.querySelector(".box-b");
+
+      var ar = relRect(a, stage);
+      var br = relRect(b, stage);
+      var gap = br.top - ar.bottom;                     // A 底边到 B 顶边的真实距离
+
+      var mb = parseFloat(getComputedStyle(a).marginBottom);
+      var mt = parseFloat(getComputedStyle(b).marginTop);
+      var collapsed = Math.abs(gap - (mb + mt)) > 0.5;
+
+      pane.dataset.state = collapsed ? "collapsed" : "separated";
+      pane.querySelector('[data-out="gap"]').textContent = px(gap);
+      pane.querySelector('[data-out="gap-state"]').textContent = collapsed
+        ? "max(" + round(mb) + ", " + round(mt) + ")"
+        : round(mb) + " + " + round(mt) + " 相加";
+
+      setDim(pane, "gap", ar.bottom, gap, px(gap));
+    });
+  }
+
+  /* ---------- 控件联动 ---------- */
+
+  function bindFix(name, paneSelector, labelSelector, measure) {
+    var pane = document.querySelector(paneSelector);
+    var label = document.querySelector(labelSelector);
+    var group = document.querySelectorAll('input[name="' + name + '"]');
+
+    function sync() {
+      var checked = document.querySelector('input[name="' + name + '"]:checked');
+      pane.dataset.fix = checked.value;
+      label.textContent = checked.nextElementSibling.textContent.trim();
+
+      // 切换后布局变了，等下一帧再量，拿到的才是最终几何
+      requestAnimationFrame(measure);
+    }
+
+    Array.prototype.forEach.call(group, function (input) {
+      input.addEventListener("change", sync);
+    });
+
+    sync();
+  }
+
+  function measureAll() {
+    measureParent();
+    measureSibling();
+  }
+
+  bindFix("fix-parent", '[data-case="parent"] .pane[data-pane="fixed"]', '[data-out="parent-fix-label"]', measureParent);
+  bindFix("fix-sibling", '[data-case="sibling"] .pane[data-pane="fixed"]', '[data-out="sibling-fix-label"]', measureSibling);
+
+  // 字体/折行变化后几何会变，重新测一次
+  window.addEventListener("resize", measureAll);
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(measureAll);
+  }
+
+  measureAll();
+})();
+</script>
+</body>
+</html>

@@ -10,6 +10,8 @@
 
 - HTML 面试复习清单：[html-面试复习清单.md](./html-面试复习清单.md)
 - CSS 面试复习清单：[css-面试复习清单.md](./css-面试复习清单.md)
+- margin 折叠演示（可交互）：[margin折叠-demo/index.html](./margin折叠-demo/index.html)
+- `flex: 1` 对照实验台（配控制台）：[flex-1-demo/index.html](./flex-1-demo/index.html)
 
 ## 当前整理策略
 
